@@ -1,0 +1,132 @@
+{
+  "mode": "dry_run",
+  "production_authorized": false,
+  "source": "fixture",
+  "assessment_scope": "synthetic_reference_only",
+  "canonical_url": "https://docs.google.com/spreadsheets/d/1mcimCk9NVrQmaVgDvddiD0kB5PTMDFpnViUr_LMZWVs/edit",
+  "snapshot_hash": "49aedfa06a1344185f20e07edaaccc2cac04dc2a5f56e374e772bedcebbbf16d",
+  "fetched_at": "2026-11-04T01:00:00+00:00",
+  "generated_at": "2026-11-04T08:43:04.602220+00:00",
+  "date_timezone": "Asia/Tokyo",
+  "sheet_timezone_unchanged": "America/Los_Angeles",
+  "sheet_inventory": [
+    {
+      "sheet_id": 1997875360,
+      "title": "都内・公開メール医師",
+      "kind": "person",
+      "grid_rows": 1000,
+      "last_data_row": 2,
+      "registered_rows": 1
+    },
+    {
+      "sheet_id": 1046147091,
+      "title": "LP・小冊子",
+      "kind": "non_person",
+      "grid_rows": 100,
+      "last_data_row": 2,
+      "registered_rows": null
+    }
+  ],
+  "before": {
+    "registered_rows": 1,
+    "observed_named_rows": 1,
+    "actual_people": null,
+    "actual_people_reason": "既存全行の本人同定が未確認のため実人数を確定しません。",
+    "last_data_row": 2
+  },
+  "after": {
+    "registered_rows": 1,
+    "observed_named_rows": 1,
+    "actual_people": null,
+    "actual_people_reason": "既存全行の本人同定が未確認のため実人数を確定しません。",
+    "last_data_row": 2
+  },
+  "newly_added": {
+    "doctor": 0,
+    "dentist": 0,
+    "total": 0
+  },
+  "planned_additions": {
+    "doctor": 1,
+    "dentist": 0
+  },
+  "candidate_counts": {
+    "eligible": 1,
+    "duplicate": 1,
+    "excluded": 0,
+    "hold": 1
+  },
+  "duplicate_excluded_people": null,
+  "count_note": "候補件数と実人数は別です。重複候補の人数も未同定なら不明です。",
+  "assessments": [
+    {
+      "id": "fiction-001",
+      "name": "架空 次郎",
+      "status": "eligible",
+      "reasons": [],
+      "matches": [],
+      "age_note": "36歳（生年月日根拠、確認基準日2026-11-04）"
+    },
+    {
+      "id": "fiction-002",
+      "name": "別の架空候補",
+      "status": "duplicate",
+      "reasons": [],
+      "matches": [
+        {
+          "target": "1997875360:2",
+          "scope": "canonical",
+          "level": "confirmed",
+          "reasons": [
+            "primary_email_exact"
+          ]
+        }
+      ],
+      "age_note": "36歳（生年月日根拠、確認基準日2026-11-04）"
+    },
+    {
+      "id": "fiction-003",
+      "name": "仮想 三美",
+      "status": "hold",
+      "reasons": [
+        "年齢の根拠・確認者・確認日時が不足",
+        "年齢の計算根拠が不足"
+      ],
+      "matches": [],
+      "age_note": ""
+    }
+  ],
+  "blockers": [],
+  "master_diff": {
+    "content_equal": true,
+    "reused_records": 1,
+    "rebuilt_records": 0,
+    "removed_or_changed_records": 0
+  },
+  "master_saved": false,
+  "proposed_change": {
+    "sheet_id": 1997875360,
+    "start_row": 3,
+    "rows_A_G": [
+      [
+        "R8/11/4",
+        "",
+        "架空 次郎（かくう じろう）",
+        "架空病院・医師",
+        "jiro@example.invalid",
+        "https://example.invalid/evidence",
+        "36歳（生年月日根拠、確認基準日2026-11-04）\n本人メール: 本人公開個人メールの架空確認（確認: 2026-11-04T09:00:00+09:00 / 架空の確認担当）\n年齢根拠: 架空の生年月日資料（確認: 2026-11-04T09:00:00+09:00 / 架空の確認担当）\n現職: 現在の医師としての所属の架空確認（確認: 2026-11-04T09:00:00+09:00 / 架空の確認担当）"
+      ]
+    ],
+    "new_row_height_px": 20,
+    "preserve_existing_format_and_validation": true,
+    "format_status": "設計のみ・書式変更は未実装",
+    "operation_id": "3aaa4dc6c9f50abdf6c4c715e86689878a94580a190ed93bb7ca216a4f7012ef"
+  },
+  "post_save_verification": "not_run_read_only",
+  "limitations": [
+    "本番書き込み機能は未実装。承認・保存検証は次段階。",
+    "資料の真偽は自動保証しません。人による根拠確認が必要です。",
+    "別表記・旧姓は明示入力が必要。機械照合だけで未登録を保証しません。"
+  ]
+}

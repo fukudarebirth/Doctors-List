@@ -1,0 +1,51 @@
+{
+  "spreadsheet_id": "1mcimCk9NVrQmaVgDvddiD0kB5PTMDFpnViUr_LMZWVs",
+  "source": "fixture",
+  "fetched_at": "2026-11-04T01:00:00+00:00",
+  "timezone": "America/Los_Angeles",
+  "sheets": [
+    {
+      "sheet_id": 1997875360,
+      "title": "都内・公開メール医師",
+      "kind": "person",
+      "header_row": 1,
+      "row_count": 1000,
+      "rows": [
+        [
+          "追加日",
+          "配信状況",
+          "氏名（ふりがな）",
+          "勤務先＆役職",
+          "メールアドレス",
+          "出典",
+          "備考"
+        ],
+        [
+          "R8/11/3",
+          "",
+          "架空 花子（かくう はなこ）",
+          "架空医療機関・医師",
+          "hanako@example.invalid",
+          "https://example.invalid/staff",
+          "架空データ"
+        ],
+        [],
+        []
+      ]
+    },
+    {
+      "sheet_id": 1046147091,
+      "title": "LP・小冊子",
+      "kind": "non_person",
+      "row_count": 100,
+      "rows": [
+        [
+          "架空の資料一覧"
+        ],
+        [
+          "説明資料"
+        ]
+      ]
+    }
+  ]
+}

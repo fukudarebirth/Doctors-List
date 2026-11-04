@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "spreadsheet_id": "1mcimCk9NVrQmaVgDvddiD0kB5PTMDFpnViUr_LMZWVs",
+  "snapshot_hash": "49aedfa06a1344185f20e07edaaccc2cac04dc2a5f56e374e772bedcebbbf16d",
+  "fetched_at": "2026-11-04T01:00:00+00:00",
+  "entries": [
+    {
+      "id": "1997875360:2",
+      "sheet_id": 1997875360,
+      "row": 2,
+      "name": "架空 花子",
+      "kana": "かくう はなこ",
+      "email": "hanako@example.invalid",
+      "affiliation": "架空医療機関・医師",
+      "cells": [
+        "R8/11/3",
+        "",
+        "架空 花子（かくう はなこ）",
+        "架空医療機関・医師",
+        "hanako@example.invalid",
+        "https://example.invalid/staff",
+        "架空データ"
+      ],
+      "raw_cells": [
+        "R8/11/3",
+        "",
+        "架空 花子（かくう はなこ）",
+        "架空医療機関・医師",
+        "hanako@example.invalid",
+        "https://example.invalid/staff",
+        "架空データ"
+      ]
+    }
+  ],
+  "removed": [],
+  "matching_version": 1
+}

@@ -1,0 +1,114 @@
+[
+  {
+    "id": "fiction-001",
+    "name": "架空 次郎",
+    "kana": "かくう じろう",
+    "email": "jiro@example.invalid",
+    "profession": "doctor",
+    "affiliation": "架空病院・医師",
+    "evidence": {
+      "email": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "本人公開個人メールの架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "personal_public": true
+      },
+      "affiliation": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "現在の医師としての所属の架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "current": true
+      },
+      "age": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "架空の生年月日資料",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "method": "birth_date",
+        "birth_date": "1990-01-02"
+      }
+    }
+  },
+  {
+    "id": "fiction-002",
+    "name": "別の架空候補",
+    "kana": "べつのかくうこうほ",
+    "email": "hanako@example.invalid",
+    "profession": "doctor",
+    "affiliation": "架空病院・医師",
+    "evidence": {
+      "email": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "本人公開個人メールの架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "personal_public": true
+      },
+      "affiliation": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "現在の医師としての所属の架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "current": true
+      },
+      "age": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "架空の生年月日資料",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "method": "birth_date",
+        "birth_date": "1990-01-02"
+      }
+    }
+  },
+  {
+    "id": "fiction-003",
+    "name": "仮想 三美",
+    "kana": "かそう みみ",
+    "email": "mimi@example.invalid",
+    "profession": "doctor",
+    "affiliation": "架空病院・医師",
+    "evidence": {
+      "email": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "本人公開個人メールの架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "personal_public": true
+      },
+      "affiliation": {
+        "confirmed": true,
+        "reviewer": "架空の確認担当",
+        "reviewed_at": "2026-11-04T09:00:00+09:00",
+        "summary": "現在の医師としての所属の架空確認",
+        "urls": [
+          "https://example.invalid/evidence"
+        ],
+        "current": true
+      }
+    }
+  }
+]
