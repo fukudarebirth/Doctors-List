@@ -34,9 +34,17 @@ def import_library_master(value):
                 extra = item.get(key, [])
                 if not isinstance(extra, list):
                     raise ValueError('Libraryマスターの別表記配列が不正です。')
+                fields = ({'value', 'label', 'origin'} if key == 'explicit_aliases'
+                          else {'text', 'origin'})
+                text_field = 'value' if key == 'explicit_aliases' else 'text'
                 for part in extra:
                     if isinstance(part, str):
                         target.append(part)
+                    elif (isinstance(part, dict) and set(part) == fields
+                          and all(isinstance(part[field], str) for field in fields)):
+                        # Extract the supplied text only. label/origin remain in
+                        # legacy_archive; neither is an identity approval or code.
+                        target.append(part[text_field])
                     else:
                         # Keep unfamiliar structures in the archive, block eligibility.
                         issues.append('Libraryマスターの別表記・旧所属に未対応の構造があります。')

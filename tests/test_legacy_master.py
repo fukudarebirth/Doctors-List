@@ -86,6 +86,84 @@ class LegacyTests(unittest.TestCase):
         self.assertEqual(value['legacy_archive'], original)
         self.assertTrue(report['blockers'])
 
+    def test_structured_aliases_and_contexts_mixed_with_strings(self):
+        original = library()
+        record = original['people'][0]
+        record['explicit_aliases'] += [{'value': '架空別姓', 'label': '旧姓', 'origin': '架空資料'}]
+        record['affiliation_contexts'] += [{'text': '架空過去大学', 'origin': '架空経歴'}]
+        value = self.load(original)
+        self.assertEqual(value['import_review_issues'], [])
+        self.assertEqual(value['entries'][0]['aliases'], ['架空既存', '架空旧姓', '架空別姓'])
+        self.assertEqual(value['entries'][0]['previous_affiliations'], ['架空旧病院', '架空過去大学'])
+        self.assertEqual(value['legacy_archive'], original)
+
+    def test_structured_alias_is_suspicion_not_confirmed_identity(self):
+        original = library()
+        original['people'][0]['explicit_aliases'] = [{'value': '架空別姓', 'label': '確認済み', 'origin': '架空資料'}]
+        report = evaluate(snapshot([row()]), [candidate(name='架空別姓')], self.load(original), NOW)
+        self.assertEqual(report['assessments'][0]['status'], 'hold')
+        self.assertEqual(report['assessments'][0]['matches'][0]['level'], 'suspected')
+
+    def test_structured_retired_alias_preserved_as_history(self):
+        original = library()
+        record = person('retired', row('架空引退', 'retired@example.invalid'))
+        record['explicit_aliases'] = [{'value': '架空旧々姓', 'label': '別名', 'origin': '架空資料'}]
+        original['retired_people'].append(record)
+        value = self.load(original)
+        self.assertEqual(value['import_review_issues'], [])
+        report = evaluate(snapshot([row()]), [candidate(name='架空旧々姓')], value, NOW)
+        self.assertEqual(report['assessments'][0]['status'], 'hold')
+        self.assertTrue(any(m['scope'] == 'history' for m in report['assessments'][0]['matches']))
+
+    def test_bad_structured_metadata_types_or_unknown_keys_stay_blocked(self):
+        cases = [
+            ('explicit_aliases', {'value': ['架空別姓'], 'label': '旧姓', 'origin': '架空資料'}),
+            ('explicit_aliases', {'value': '架空別姓', 'label': {}, 'origin': '架空資料'}),
+            ('explicit_aliases', {'value': '架空別姓', 'label': '旧姓', 'origin': None}),
+            ('explicit_aliases', {'value': '架空別姓', 'origin': '架空資料'}),
+            ('affiliation_contexts', {'text': {}, 'origin': '架空資料'}),
+            ('affiliation_contexts', {'text': '架空所属', 'origin': '架空資料', 'unrecognized': True}),
+        ]
+        for field, item in cases:
+            with self.subTest(field=field, item=item):
+                original = library(); original['people'][0][field] = [item]
+                value = self.load(original)
+                self.assertTrue(value['import_review_issues'])
+                self.assertEqual(value['legacy_archive'], original)
+                report = evaluate(snapshot([row()]), [candidate()], value, NOW)
+                self.assertEqual(report['assessments'][0]['status'], 'hold')
+
+    def test_structured_origin_is_inert_and_survives_save_and_reload(self):
+        original = library()
+        origin = "raise RuntimeError('DO NOT EXECUTE')"
+        original['people'][0]['explicit_aliases'] = [{'value': '架空別姓', 'label': '架空別名', 'origin': origin}]
+        original['people'][0]['affiliation_contexts'] = [{'text': '架空過去大学', 'origin': origin}]
+        value = self.load(original)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'synced.json'
+            sync_master(snapshot([row()], source='google'), output, value)
+            saved = load_master(output)
+            self.assertEqual(saved['legacy_archive'], original)
+            self.assertIn('架空別姓', saved['entries'][0]['aliases'])
+            self.assertIn('架空過去大学', saved['entries'][0]['previous_affiliations'])
+            self.assertEqual(saved['import_review_issues'], [])
+
+    def test_check_master_reports_supported_structures_without_person_values(self):
+        original = library()
+        original['people'][0]['explicit_aliases'] = [{'value': '架空別姓', 'label': '旧姓', 'origin': '架空資料'}]
+        original['people'][0]['affiliation_contexts'] = [{'text': '架空過去大学', 'origin': '架空経歴'}]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'input.json'; save_private_json(path, original)
+            before = path.read_bytes()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output), patch('doctors_list.cli.build_service') as service:
+                self.assertEqual(main(['check-master', '--master', str(path)]), 0)
+            service.assert_not_called()
+            self.assertEqual(json.loads(output.getvalue())['review_issue_count'], 0)
+            self.assertNotIn('架空', output.getvalue())
+            self.assertNotIn('@', output.getvalue())
+            self.assertEqual(path.read_bytes(), before)
+
     def test_matching_content_reuses_aliases_and_current_position(self):
         original = self.load(library())
         book = snapshot([[], row()])

@@ -55,6 +55,11 @@ Library IDは一般のダウンロードURLやSedimentファイルIDではあり
 | 過去件数・sheet_snapshots・調査ログ | 原本資料として保持。現在の人数・最新正本の代用にはしない |
 | maintenance_builder_python等 | 文字列のデータとして保持するだけで、実行しない |
 
+0.1.2は、文字列に加えて `explicit_aliases` の `{value, label, origin}`（全項目が文字列）、
+`affiliation_contexts` の `{text, origin}`（全項目が文字列）を読み込みます。
+照合にはvalue/textを使い、label/originは原本とともに保持します。出典の記載だけで同一人物と認定しません。
+それ以外の構造や項目型は引き続き確認待ちとし、候補を自動採用しません。
+
 元JSON全体を `legacy_archive` として保持し、内容ハッシュを検証します。これは真正性の署名ではありません。
 形式確認は読み取り専用で行えます。表示する記録件数は保存済みマスター内の件数で、現在の正本の人数ではありません。
 
