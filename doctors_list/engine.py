@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 import re
 from . import MAIN_SHEET_ID, SHEET_URL
 from .snapshot import inspect_snapshot, snapshot_hash
-from .matching import compare
+from .matching import compare, normalize_name
 from .master import reconcile
 from .validation import conditions, reviewed, validate_candidates
 from .storage import digest
@@ -69,18 +69,23 @@ def evaluate(snapshot, candidates, master=None, now=None):
             blockers.append('正本の取得時刻を検証できません。')
     if master is None:
         blockers.append('保存済み除外マスターが未照合（削除履歴等が未確認）')
+    blockers.extend((master or {}).get('import_review_issues', []))
     rebuilt, master_diff = (None, None)
     if not inspection['issues']:
         rebuilt, master_diff = reconcile(snapshot, master)
     existing = rebuilt['entries'] if rebuilt else inspection['records']
     history = rebuilt['removed'] if rebuilt else (master or {}).get('removed', [])
     normalized = [_identity_safe(c) for c in candidates]
+    legacy_names = {normalize_name(n) for n in (master or {}).get('historical_name_keys', [])}
     assessments = []
     for c in normalized:
         validation = conditions(c, today)
         hold = validation['hold'] + blockers
         excluded = list(validation['exclude'])
         matches = []
+        candidate_names = [c.get(k, '') for k in ('name', 'kana', 'romanized')] + c.get('aliases', [])
+        if any(normalize_name(n) in legacy_names for n in candidate_names if n):
+            hold.append('保存済み氏名索引に一致：正本と過去記録の対応を確認してください')
         for record in existing:
             hit = compare(c, _identity_safe(record))
             hit = _resolution(c, record, hit, fingerprint)

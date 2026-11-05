@@ -35,6 +35,8 @@ def _parser():
     sync.add_argument("--config", required=True)
     sync.add_argument("--master", required=True)
     sync.add_argument("--output", required=True)
+    check = commands.add_parser("check-master", help="除外マスターの形式確認（内容を表示せず変更しない）", allow_abbrev=False)
+    check.add_argument("--master", required=True)
     return parser
 
 
@@ -91,6 +93,16 @@ def main(argv=None):
     except SystemExit as error:
         return 0 if error.code == 0 else 1
     try:
+        if args.command == "check-master":
+            private_path(args.master)
+            value = load_master(args.master)
+            print(json.dumps({"master_loaded": True, "source_id_verified": True,
+                              "format": value.get("imported_format", "native_v1"),
+                              "stored_active_records": len(value["entries"]),
+                              "stored_history_records": len(value.get("removed", [])),
+                              "review_issue_count": len(value.get("import_review_issues", [])),
+                              "canonical_read_this_run": False, "file_changed": False}, ensure_ascii=False, indent=2))
+            return 0
         if args.command == "auth":
             build_service(args.client, args.token, interactive=True)
             print("読み取り専用OAuth認証を完了しました。Googleシートは変更していません。")

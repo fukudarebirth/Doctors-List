@@ -39,9 +39,28 @@ JSONはUTF-8、20 MiB以下。プログラムやpickleを読み込む機能は�
 ## 除外マスター
 
 Library IDは一般のダウンロードURLやSedimentファイルIDではありません。この実装はLibraryへ直接アクセスしません。
-ダウンロードした原本を保持し、`schema_version: 1`, `spreadsheet_id`, `snapshot_hash`, `entries`, `removed` の形式で安全に読み込みます。
-実ファイルの形式は未取得・未検証です。未知形式を黙って無視せずエラーにします。
-変換が必要な場合は原本の氏名・本人メール・別表記・参照元・削除履歴を保持する対応表を作り、実内容を確認してから変換アダプターを追加してください。個人情報をGitへ追加しないこと。
+標準形式は `schema_version: 1`, `spreadsheet_id`, `snapshot_hash`, `entries`, `removed` です。
+0.1.1から、利用者から共有された構造に基づくLibrary形式（文字列のschema_version、authoritative_source、people）にも対応します。
+実データの値は受け取らず、架空データで検証しています。未対応の項目型は停止または保留とし、読み捨てて登録可能にしません。
+
+| Library側 | 読み込み時の扱い |
+| --- | --- |
+| authoritative_source.spreadsheet_id | 指定正本との完全一致を検査 |
+| people / source_cells | A〜Gと人物索引。現在のシート名・内容が一致した記録だけ再利用、現在の行位置へ更新 |
+| explicit_aliases / affiliation_contexts | 別表記・旧所属として保持。不明な構造は原本に保持し候補を保留 |
+| retired_people | 削除・除外履歴として保持。一致候補は経緯確認まで保留 |
+| external_identity_annotations | 氏名・読み・別メールを疑いの抽出に利用。本人同定済みとは自動認定しない |
+| name_alias_index | 氏名一致時の追加確認に利用。これだけで登録済みと断定しない |
+| email_mention_index | 共著者等を含む可能性があるため、本人メールとして照合せず原本に保持 |
+| 過去件数・sheet_snapshots・調査ログ | 原本資料として保持。現在の人数・最新正本の代用にはしない |
+| maintenance_builder_python等 | 文字列のデータとして保持するだけで、実行しない |
+
+元JSON全体を `legacy_archive` として保持し、内容ハッシュを検証します。これは真正性の署名ではありません。
+形式確認は読み取り専用で行えます。表示する記録件数は保存済みマスター内の件数で、現在の正本の人数ではありません。
+
+```powershell
+.\.venv\Scripts\python.exe -m doctors_list check-master --master "$env:USERPROFILE/Downloads/新規医者_除外マスター.json"
+```
 
 `entries` は正本の登録記録、`removed` は以前存在した記録です。
 最新の全シート内容・位置・構成のハッシュを比較し、内容一致の索引だけ再利用します。
