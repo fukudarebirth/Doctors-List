@@ -158,9 +158,9 @@ def evaluate(snapshot, candidates, master=None, now=None):
             'proposed_change': {'sheet_id': MAIN_SHEET_ID, 'start_row': inspection['last_data_row']+1,
                                 'rows_A_G': rows, 'new_row_height_px': 20,
                                 'preserve_existing_format_and_validation': True,
-                                'format_status': '設計のみ・書式変更は未実装',
+                                'format_status': 'Dry Runのため未変更。承認付き追記では書式継承と検証を行います。',
                                 'operation_id': digest({'snapshot': fingerprint, 'rows': rows})},
             'post_save_verification': 'not_run_read_only',
-            'limitations': ['本番書き込み機能は未実装。承認・保存検証は次段階。',
+            'limitations': ['Dry Runは書き込みません。追記には最新差分の明示承認と専用認証が必要です。',
                             '資料の真偽は自動保証しません。人による根拠確認が必要です。',
                             '別表記・旧姓は明示入力が必要。機械照合だけで未登録を保証しません。']}

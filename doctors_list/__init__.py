@@ -1,4 +1,4 @@
-"""ReBIRTH 医師リスト: 読み取り専用の照合・Dry Run。"""
+"""ReBIRTH 医師リスト: 照合・Dry Run・明示承認付き追記。"""
 
 SPREADSHEET_ID = '1mcimCk9NVrQmaVgDvddiD0kB5PTMDFpnViUr_LMZWVs'
 MAIN_SHEET_ID = 1997875360

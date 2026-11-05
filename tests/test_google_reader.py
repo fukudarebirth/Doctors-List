@@ -169,6 +169,21 @@ class ReaderTests(unittest.TestCase):
                 "sheets", "v4", credentials=credential, cache_discovery=False,
             )
 
+    def test_write_scope_requires_explicit_mode_and_dedicated_token(self):
+        from doctors_list.google_reader import WRITE_SCOPE
+        credential = types.SimpleNamespace(expired=False, valid=True)
+        modules = self._google_modules(credential)
+        with tempfile.TemporaryDirectory() as directory, patch.dict('sys.modules', modules):
+            client = Path(directory) / 'client.json'
+            token = Path(directory) / 'write.json'
+            token.write_text(json.dumps({'scopes': list(SCOPES)}))
+            with self.assertRaises(ReadError): build_service(client, token, writable=True)
+            token.write_text(json.dumps({'scopes': [WRITE_SCOPE]}))
+            with self.assertRaises(ReadError): build_service(client, token)
+            build_service(client, token, writable=True)
+            modules['google.oauth2.credentials'].Credentials.from_authorized_user_info.assert_called_once_with(
+                {'scopes': [WRITE_SCOPE]}, scopes=[WRITE_SCOPE])
+
     def test_atomic_token_save_and_mode(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "private" / "token.json"

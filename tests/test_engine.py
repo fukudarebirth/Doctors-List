@@ -211,7 +211,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual((book, cs, master), before)
         self.assertEqual(a['proposed_change']['new_row_height_px'], 20)
         self.assertTrue(a['proposed_change']['preserve_existing_format_and_validation'])
-        self.assertIn('未実装', a['proposed_change']['format_status'])
+        self.assertIn('未変更', a['proposed_change']['format_status'])
 
     def test_google_snapshot_older_than_fifteen_minutes_is_held(self):
         book = snapshot([row()], source='google', fetched_at='2026-11-04T04:44:59+00:00')

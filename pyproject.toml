@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rebirth-doctors-list"
-version = "0.1.2"
-description = "Read-only doctor-list reconciliation and dry-run planning"
+version = "0.2.0"
+description = "Doctor-list reconciliation, approved appends and Windows desktop UI"
 requires-python = ">=3.11"
 dependencies = [
   "google-api-python-client>=2.160,<3",
@@ -16,6 +16,9 @@ dependencies = [
 
 [project.scripts]
 doctors-list = "doctors_list.cli:main"
+
+[project.gui-scripts]
+doctors-list-gui = "doctors_list.gui:main"
 
 [tool.setuptools.packages.find]
 include = ["doctors_list*"]

@@ -1,4 +1,4 @@
-"""Read-only CLI. Reports containing personal data are saved outside the checkout."""
+"""Read-only default and explicit append workflow; private reports stay outside checkout."""
 from __future__ import annotations
 
 import argparse
@@ -11,10 +11,12 @@ from .engine import evaluate
 from .google_reader import ReadError, build_service, read_snapshot
 from .master import load_master, sync_master
 from .storage import load_json, private_path, save_private_json
+from . import writer
+from .workflow import backend, state_directory, write_token_path
 
 
 def _parser():
-    parser = argparse.ArgumentParser(description="医師リスト照合（読み取り専用）", allow_abbrev=False)
+    parser = argparse.ArgumentParser(description="医師リスト照合（初期状態は読み取り専用・追記は明示承認）", allow_abbrev=False)
     commands = parser.add_subparsers(dest="command", required=True)
     dry = commands.add_parser("dry-run", help="候補を照合し、書き込みなしでレポート保存", allow_abbrev=False)
     dry.add_argument("--candidates", required=True)
@@ -37,6 +39,19 @@ def _parser():
     sync.add_argument("--output", required=True)
     check = commands.add_parser("check-master", help="除外マスターの形式確認（内容を表示せず変更しない）", allow_abbrev=False)
     check.add_argument("--master", required=True)
+    commands.add_parser("gui", help="Windows操作画面を開く")
+    prepare = commands.add_parser("prepare-append", help="最新正本から承認対象の差分を作成（読み取り専用）")
+    for key in ("config", "candidates", "master", "output"):
+        prepare.add_argument("--" + key, required=True)
+    apply = commands.add_parser("apply-append", help="差分を明示承認し、新規行だけ追記")
+    for key in ("config", "plan", "approval"):
+        apply.add_argument("--" + key, required=True)
+    apply.add_argument("--single-writer", action="store_true")
+    recovery = commands.add_parser("recover", help="保存状態を再照合（Googleへの再送なし）")
+    recovery.add_argument("--config", required=True)
+    recovery.add_argument("--operation-id", required=True)
+    write_auth = commands.add_parser("auth-write", help="専用ファイルで書き込み認証を設定（追記は行わない）")
+    write_auth.add_argument("--config", required=True)
     return parser
 
 
@@ -44,7 +59,7 @@ def _config(path):
     value = load_json(path)
     if not isinstance(value, dict):
         raise ValueError("設定はJSONオブジェクトにしてください。")
-    for key in ("client_secrets_path", "token_path"):
+    for key in ("client_secrets_path", "token_path", *(["write_token_path"] if "write_token_path" in value else [])):
         if not isinstance(value.get(key), str) or not value[key].strip():
             raise ValueError("OAuthファイルの絶対パスを設定してください。")
         expanded = Path(os.path.expandvars(value[key])).expanduser()
@@ -93,6 +108,37 @@ def main(argv=None):
     except SystemExit as error:
         return 0 if error.code == 0 else 1
     try:
+        if args.command == "gui":
+            from .gui import main as gui_main
+            return gui_main()
+        if args.command in ("prepare-append", "apply-append", "recover", "auth-write"):
+            config = _config(args.config)
+            if args.command == "auth-write":
+                backend(config, writable=True, interactive=True)
+                print("書き込み用の認証を保存しました。Googleシートは変更していません。")
+                return 0
+            if args.command == "prepare-append":
+                private_path(args.candidates); private_path(args.master)
+                destination = _output(args.output, [args.config, args.candidates, args.master,
+                    config['client_secrets_path'], config['token_path'], write_token_path(config)])
+                plan = writer.prepare(backend(config), load_json(args.candidates), load_master(args.master))
+                save_private_json(destination, plan)
+                print(json.dumps({"plan_id": plan['plan_id'], "approval_phrase": writer.approval_phrase(plan),
+                    "candidate_counts": plan['payload']['report']['candidate_counts'],
+                    "rows_to_append": len(plan['payload']['spec']['rows']), "written": False}, ensure_ascii=False, indent=2))
+                return 0
+            if args.command == "apply-append":
+                private_path(args.plan)
+                plan = load_json(args.plan)
+                if args.approval != writer.approval_phrase(plan) or not args.single_writer:
+                    raise writer.WriteStopped('差分の明示承認と単一担当確認が必要です。')
+                result = writer.apply(backend(config, writable=True), plan, state_directory(config), args.approval, args.single_writer)
+            else:
+                result = writer.recover(backend(config), state_directory(config), args.operation_id)
+            print(json.dumps({"mode": result['mode'], "plan_id": result['plan_id'],
+                "newly_added": result['newly_added'], "post_save_verification": result['post_save_verification'],
+                "master_saved": result['master_saved']}, ensure_ascii=False, indent=2))
+            return 0
         if args.command == "check-master":
             private_path(args.master)
             value = load_master(args.master)
@@ -151,7 +197,7 @@ def main(argv=None):
             result = sync_master(snapshot, destination, old)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
-    except ReadError as error:
+    except (ReadError, writer.WriteStopped) as error:
         print(str(error), file=sys.stderr)  # Adapter errors are explicitly redacted.
     except FileNotFoundError:
         print("必要な入力ファイルが見つかりません。指定パスと設定を確認してください。", file=sys.stderr)
@@ -162,5 +208,5 @@ def main(argv=None):
     except (ValueError, TypeError, KeyError):
         print("入力・設定を検証できませんでした。JSON形式、必須項目、シート構成、保存先を確認してください。入力の上書きは許可されません。", file=sys.stderr)
     except Exception:
-        print("処理を安全停止しました。入力と通信・保存状態を確認してください。Googleシートへの書き込みは行っていません。", file=sys.stderr)
+        print("処理を安全停止しました。入力と通信・保存状態を確認してください。追記処理中の場合は再送せずrecoverで保存状態を確認してください。", file=sys.stderr)
     return 1

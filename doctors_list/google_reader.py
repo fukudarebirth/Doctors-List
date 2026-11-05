@@ -1,4 +1,4 @@
-"""Official OAuth and strictly read-only access to the canonical spreadsheet.
+"""Official OAuth with read-only default and a separate explicit write grant.
 
 Google client libraries are imported only when OAuth is requested. No write API
 is exposed by this module. Returned row_count is grid capacity, not people count.
@@ -17,6 +17,7 @@ MAIN_SHEET_ID = 1997875360
 MAIN_SHEET_TITLE = "都内・公開メール医師"
 READONLY_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly"
 SCOPES = (READONLY_SCOPE,)
+WRITE_SCOPE = "https://www.googleapis.com/auth/spreadsheets"
 HEADERS = ("追加日", "配信状況", "氏名（ふりがな）", "勤務先＆役職", "メールアドレス", "出典", "備考")
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -53,8 +54,8 @@ def _save_token(path: Path, value: str) -> None:
             Path(temporary).unlink(missing_ok=True)
 
 
-def build_service(client_path: str | Path, token_path: str | Path, *, interactive: bool = False):
-    """Build a read-only Sheets service using a Desktop OAuth client.
+def build_service(client_path: str | Path, token_path: str | Path, *, interactive: bool = False, writable: bool = False):
+    """Build a Sheets service using a Desktop OAuth client; read-only by default.
 
     Interactive consent is performed only when explicitly requested. Never pass
     tokens via CLI arguments or place either file in the repository. On Windows,
@@ -62,6 +63,7 @@ def build_service(client_path: str | Path, token_path: str | Path, *, interactiv
     """
     client = _outside_checkout(client_path)
     token = _outside_checkout(token_path)
+    scopes_required = (WRITE_SCOPE,) if writable else SCOPES
     if client == token:
         raise ReadError("OAuthクライアントとトークンには異なるファイルを指定してください。")
     try:
@@ -80,9 +82,9 @@ def build_service(client_path: str | Path, token_path: str | Path, *, interactiv
             scopes = info.get("scopes", [])
             if isinstance(scopes, str):
                 scopes = scopes.split()
-            if not isinstance(scopes, list) or set(scopes) != set(SCOPES):
-                raise ReadError("このトークンは読み取り専用ではありません。別のトークンファイルで再認証してください。")
-            credentials = Credentials.from_authorized_user_info(info, scopes=list(SCOPES))
+            if not isinstance(scopes, list) or set(scopes) != set(scopes_required):
+                raise ReadError("トークンの権限が今回必要な権限と一致しません。用途別の別ファイルで認証してください。")
+            credentials = Credentials.from_authorized_user_info(info, scopes=list(scopes_required))
         if credentials and credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
             _save_token(token, credentials.to_json())
@@ -94,12 +96,12 @@ def build_service(client_path: str | Path, token_path: str | Path, *, interactiv
             client_info = json.loads(client.read_text(encoding="utf-8"))
             if not isinstance(client_info, dict) or "installed" not in client_info:
                 raise ReadError("デスクトップアプリ用の公式OAuthクライアントを指定してください。")
-            flow = InstalledAppFlow.from_client_config(client_info, scopes=list(SCOPES))
+            flow = InstalledAppFlow.from_client_config(client_info, scopes=list(scopes_required))
             # Suppress the callback server's authorization URL in console logs.
             credentials = flow.run_local_server(port=0, authorization_prompt_message="", success_message="認証を完了しました。この画面を閉じてください。")
             granted = getattr(credentials, "granted_scopes", None)
-            if granted is not None and set(granted) != set(SCOPES):
-                raise ReadError("読み取り専用以外の権限が付与されたため停止しました。")
+            if granted is not None and set(granted) != set(scopes_required):
+                raise ReadError("要求と異なる権限が付与されたため停止しました。")
             _save_token(token, credentials.to_json())
         return build("sheets", "v4", credentials=credentials, cache_discovery=False)
     except ReadError:
